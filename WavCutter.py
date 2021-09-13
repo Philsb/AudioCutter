@@ -30,7 +30,7 @@ class WavCutter:
 
         return cuts
 
-    def cut(self):
+    def cut(self, name):
         cuttedAudio = []
         for i in range(len(self.cuts) - 1):
             cuttedAudio.append([self.cuts[i], self.cuts[i+1]])
@@ -38,7 +38,7 @@ class WavCutter:
         j=0
         for audio in cuttedAudio:
             chunk = self.wav[audio[0]:audio[1]]
-            f = open("audios/audio"+str(j)+".wav", "wb")
+            f = open(("audios/" + name + "_{:03d}".format(j))+".wav", "wb")
             chunk.export(f, format = "wav")
             f.close()
             j += 1

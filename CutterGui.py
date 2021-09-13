@@ -32,6 +32,7 @@ def init():
     
     msecs = 0
     db = 0
+    nombre = ""
     try:
         msecs = int(mseconds.get()) 
     except ValueError:
@@ -43,7 +44,6 @@ def init():
     except ValueError:
         db = -45
         tk.messagebox.showinfo(title=None, message="Decibeles no validos, -45 por default.")
-
     
     print("Milisegs: " + mseconds.get() + ", Decibeles: " + decibels.get())
     cutter.defineCuts(msecs, db)
@@ -56,7 +56,15 @@ def cut():
         print("Directory " , "audios" ,  " Created ")
     else:    
         print("Directory " , "audios" ,  " already exists")
-    cutter.cut()
+
+    nombre = "voluntaria1"
+    try:
+        nombre = str(name.get()) 
+    except ValueError:
+        nombre = "voluntaria1"
+        tk.messagebox.showinfo(title=None, message="Sin nombre, voluntaria1 por default.")
+    
+    cutter.cut(nombre)
     tk.messagebox.showinfo(title=None, message="Archivos .wav generados en la carpeta audios del mismo directorio.")
 
 def on_closing(): 
@@ -112,13 +120,24 @@ entry_db.delete(0,tk.END)
 entry_db.insert(0,"-45")
 
 #-----------------------
+#label de nombre
+lbl_db = tk.Label(master = frame1, width = 15, text = "Nombre")
+lbl_db.grid(row=3, column=0, sticky="w",padx=5, pady=5)
+#entrada de decibeles minimos
+name = tk.StringVar()
+entry_name = tk.Entry(master=frame1, width = 20,textvariable=name)
+entry_name.grid(row=3, column=1, sticky="w")
+entry_name.delete(0,tk.END)
+entry_name.insert(0,"voluntaria1")
+
+#-----------------------
 #boton de abrir
 btn_open = tk.Button(master=frame1,text="Procesar",command = init, width=10)
-btn_open.grid(row=3, column=0 ,sticky="",padx=5, pady=5)
+btn_open.grid(row=4, column=0 ,sticky="",padx=5, pady=5)
 
 #boton de cortar
-btn_cut = tk.Button(master=frame1,text="Generar .wavs", state=tk.DISABLED,command = cut, width=10)
-btn_cut.grid(row=3, column = 1,sticky="",padx=5, pady=5)
+btn_cut = tk.Button(master=frame1,text="Generar .wavs",command = cut, width=10)
+btn_cut.grid(row=4, column = 1,sticky="",padx=5, pady=5)
 
 #ejecuta ventana
 window.mainloop()
