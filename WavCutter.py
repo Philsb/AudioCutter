@@ -24,7 +24,6 @@ class WavCutter:
                     cut = (timestamp2 - timestamp1 )/2 + timestamp1
                     self.cuts.append(cut)
                     print("Cut: " + str(timestamp1) + "-->" + str(int(cut)))
-                    print(self.wav[timestamp1:int(cut)])
                 silenceNum = 0
 
             milli += 1
@@ -32,8 +31,6 @@ class WavCutter:
         return cuts
 
     def cut(self):
-        print("Cortados")
-
         cuttedAudio = []
         for i in range(len(self.cuts) - 1):
             cuttedAudio.append([self.cuts[i], self.cuts[i+1]])
