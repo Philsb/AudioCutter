@@ -41,4 +41,8 @@ class WavCutter:
             f = open(("audios/" + name + "_{:03d}".format(j))+".wav", "wb")
             chunk.export(f, format = "wav")
             f.close()
+
+        # Archivo de texto vacío
+            with open(("audios/" + name + "_{:03d}".format(j))+".txt", 'w') as fp:
+                pass
             j += 1
