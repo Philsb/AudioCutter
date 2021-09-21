@@ -45,4 +45,4 @@ class WavCutter:
         # Archivo de texto vacío
         #    with open(("audios/" + name + "_{:03d}".format(j))+".txt", 'w') as fp:
         #        pass
-        #    j += 1
+            j += 1
