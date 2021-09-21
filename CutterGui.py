@@ -53,9 +53,9 @@ def init():
 def cut():
     if not os.path.exists("audios"):
         os.mkdir("audios")
-        print("Directory " , "audios" ,  " Created ")
+        print("Directory audios Created ")
     else:    
-        print("Directory " , "audios" ,  " already exists")
+        print("Directory audios already exists")
 
     nombre = "voluntaria1"
     try:
