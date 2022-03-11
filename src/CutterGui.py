@@ -1,144 +1,143 @@
-from logging import setLoggerClass
-import tkinter as tk
-from tkinter.constants import COMMAND
-from tkinter.filedialog import askopenfilename, asksaveasfilename
-from typing import Text
+import sys
 import os as os
-
-from matplotlib.pyplot import text
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.uic import loadUi
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QMessageBox, QApplication, QFileDialog
+from PyQt5.QtWidgets import *
 import WavCutter as wav
 
-global cutter
+class MainWindow(QMainWindow):    
+    settings = QSettings('Felipe Sánchez Baldi', 'Luis Diego Pacheco')
+    settings.setFallbacksEnabled(False)
+    version = 'V0.1'
 
-def open():
-    filepath = askopenfilename(
-        filetypes=[("Wav Files", "*.wav"), ("All Files", "*.*")]
-    )
+    def __init__(self,*args,**kwargs):
+        super(MainWindow, self).__init__(*args,**kwargs)
+        loadUi("cutter.ui",self)
+        self.setWindowTitle("AudioCutter " + self.version)
 
-    entry_path.delete(0,tk.END)
-    entry_path.insert(0,filepath)
+        # Se definen las funciones asignadas a los botones
 
-def init():
+        self.audio_selec.clicked.connect(self.audio_file)
+        self.text_selec.clicked.connect(self.text_file)
+        self.dir_selec.clicked.connect(self.work_dir)
+        self.btn_open.clicked.connect(self.init)
+        self.btn_cut.clicked.connect(self.cut)
+        self.generar_txt.clicked.connect(self.gen_text)
+        self.cerrar.clicked.connect(self.close)
 
-    try:
-        path = str_path.get()
-        #fix: variable global de parche
-        global cutter 
-        cutter = wav.WavCutter(path)
-    except IOError:
-        btn_cut.configure(state=tk.DISABLED)
-        tk.messagebox.showinfo(title=None, message="No fue posible abrir el archivo .wav =(")
-        return
+        data_dir=os.getcwd()
+        self.directorio.setText(data_dir)
+
     
-    msecs = 0
-    db = 0
-    nombre = ""
-    try:
-        msecs = int(mseconds.get()) 
-    except ValueError:
-        msecs = 1000
-        tk.messagebox.showinfo(title=None, message="Segundos no validos, 1000 por default.")
-    
-    try:
-        db = int(decibels.get()) 
-    except ValueError:
-        db = -45
-        tk.messagebox.showinfo(title=None, message="Decibeles no validos, -45 por default.")
-    
-    print("Milisegs: " + mseconds.get() + ", Decibeles: " + decibels.get())
-    cutter.defineCuts(msecs, db)
-    tk.messagebox.showinfo(title=None, message="Se proceso el archivo .wav!")
-    btn_cut.configure(state=tk.ACTIVE)
+    def init(self):
+        global cutter
+        try:
+            path = self.entry_path.text()
+            cutter = wav.WavCutter(path)
+        except IOError:
+            self.btn_cut.setEnabled(False)
+            QMessageBox.warning(self, "Alerta", "No fue posible abrir el archivo .wav")
+            return
+        msecs = 0
+        db = 0
+        try:
+            msecs = int(self.entry_secs.value()) 
+        except ValueError:
+            msecs = 1000
+            QMessageBox.warning(self, "Alerta", "Segundos no validos, 1000 por default.")
+                
+        try:
+            db = int(self.entry_db.value()) 
+        except ValueError:
+            db = -45
+            QMessageBox.warning(self, "Alerta", "Decibeles no validos, -45 por default.")
+            
+        print("Milisegs: " + str(self.entry_secs.value()) + ", Decibeles: " + str(self.entry_db.value()) )
+        segmentos=cutter.defineCuts(msecs, db)
+        QMessageBox.warning(self, "Alerta", "Se proceso el archivo .wav!")
+        self.lcdNumber.display(segmentos)
+        self.lcdNumber.update()
+        self.btn_cut.setEnabled(True)
 
-def cut():
-    if not os.path.exists("audios"):
-        os.mkdir("audios")
-        print("Directory audios Created ")
-    else:    
-        print("Directory audios already exists")
-
-    nombre = "voluntaria1"
-    try:
-        nombre = str(name.get()) 
-    except ValueError:
+    def cut(self):
+        if not os.path.exists("audios"):
+            os.mkdir("audios")
+            QMessageBox.warning(self, "Alerta", "Directory audios Created ")
+        else:  
+            QMessageBox.warning(self, "Alerta", "Directory audios already exists ")  
+            
         nombre = "voluntaria1"
-        tk.messagebox.showinfo(title=None, message="Sin nombre, voluntaria1 por default.")
+        try:
+            nombre = str(self.entry_name.text()) 
+        except ValueError:
+            nombre = "voluntaria1"
+            QMessageBox.warning(self, "Alerta", "Sin nombre, voluntaria1 por default.")
+                
+        cutter.cut(nombre)
+        QMessageBox.warning(self, "Alerta", "Archivos .wav generados en la carpeta audios del mismo directorio.")
+        self.generar_txt.setEnabled(True)
+        return
+
+    def gen_text(self):
+        
+        archivo=self.archivo_texto.text() 
+        with open(archivo, 'r') as filetext:
+            datos = filetext.read()
+        filetext.close()
+        datos=datos.split("\n")
+        name = self.entry_name.text()
+        cantidad_textos=len(datos)
+        print (cantidad_textos)
+        j=0
+        while j < cantidad_textos:
+            with open(("audios/" + name + "_{:03d}".format(j))+".txt", 'w') as fp:
+                fp.write(datos[j])
+                fp.close()
+            j=j+1
+            self.lcdNumber_2.display(j)
+            self.lcdNumber.update()
+            
+
+        return
+
+    def audio_file(self):
+        data_dir=self.directorio.text()
+        if data_dir=="":
+            data_dir=os.getcwd()
+        fname=QFileDialog.getOpenFileName(self, "Abrir Archivo", data_dir,"Archivos de audio (*.wav);;Todos (*.*)")
+        self.entry_path.setText(fname[0])
+        return
+
+    def text_file(self):
+        data_dir=self.directorio.text()
+        if data_dir=="":
+            data_dir=os.getcwd()
+        textfile=QFileDialog.getOpenFileName(self, "Abrir Archivo", data_dir,"Archivos de texto (*.txt);;Todos (*.*)")
+        self.archivo_texto.setText(textfile[0])
+        return
+
+    def work_dir(self):
+        data_dir=self.directorio.text()
+        if data_dir=="":
+            data_dir=os.getcwd()
+        data_dir=QFileDialog.getExistingDirectory(self,"Choose Directory",data_dir)
+        self.directorio.setText(data_dir)
+        os.chdir(data_dir)
+        return
+
+
+def main():
+# main
+    app = QApplication(sys.argv)
+    inicio = MainWindow()
+    inicio.setMinimumWidth(800)
+    inicio.setMinimumHeight(650)
+    inicio.show()
+    sys.exit(app.exec_())
     
-    cutter.cut(nombre)
-    tk.messagebox.showinfo(title=None, message="Archivos .wav generados en la carpeta audios del mismo directorio.")
+if __name__ == '__main__':
 
-def on_closing(): 
-    window.destroy()
-    window.quit()
-
-
-#----------Crea UI ----------------------
-
-#Define marcos
-window = tk.Tk()
-window.title("Audio Cutter")
-window.minsize(300,300)
-window.maxsize(400,400)
-window.protocol("WM_DELETE_WINDOW", on_closing)
-
-
-#Define los frames
-frame1 = tk.Frame(master=window, relief=tk.RAISED, bd=2,width=200, height=700, bg="azure3")
-frame1.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
-
-#-----------------------
-#label de archivo
-lbl_arch = tk.Label(master = frame1, width = 15, text = "Archivo")
-lbl_arch.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-#boton de explorar
-btn_explorer = tk.Button(master=frame1,text="...",command = open, width=3)
-btn_explorer.grid(row=0 , column=2,sticky="ew",padx=5, pady=5)
-#entrada de file explorer
-str_path = tk.StringVar() 
-entry_path = tk.Entry(master=frame1, width = 20,text="", textvariable=str_path)
-entry_path.grid(row=0, column=1,sticky="ew")
-#-----------------------
-#label de segundos a esperar
-    
-lbl_secs = tk.Label(master = frame1, width = 15, text = "Milisegs del silencio")
-lbl_secs.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-#entrada de segundos a esperar
-mseconds = tk.StringVar()
-entry_secs = tk.Entry(master=frame1, width = 20, textvariable=mseconds)
-entry_secs.grid(row=1, column=1, sticky="w")
-entry_secs.delete(0,tk.END)
-entry_secs.insert(0,"1000")
-#-----------------------
-#label de decibeles minimos
-lbl_db = tk.Label(master = frame1, width = 15, text = "Decibeles del silencio")
-lbl_db.grid(row=2, column=0, sticky="w",padx=5, pady=5)
-#entrada de decibeles minimos
-decibels = tk.StringVar()
-entry_db = tk.Entry(master=frame1, width = 20,textvariable=decibels)
-entry_db.grid(row=2, column=1, sticky="w")
-entry_db.delete(0,tk.END)
-entry_db.insert(0,"-45")
-
-#-----------------------
-#label de nombre
-lbl_db = tk.Label(master = frame1, width = 15, text = "Nombre")
-lbl_db.grid(row=3, column=0, sticky="w",padx=5, pady=5)
-#entrada de decibeles minimos
-name = tk.StringVar()
-entry_name = tk.Entry(master=frame1, width = 20,textvariable=name)
-entry_name.grid(row=3, column=1, sticky="w")
-entry_name.delete(0,tk.END)
-entry_name.insert(0,"voluntaria1")
-
-#-----------------------
-#boton de abrir
-btn_open = tk.Button(master=frame1,text="Procesar",command = init, width=10)
-btn_open.grid(row=4, column=0 ,sticky="",padx=5, pady=5)
-
-#boton de cortar
-btn_cut = tk.Button(master=frame1,text="Generar .wavs",command = cut, width=10)
-btn_cut.grid(row=4, column = 1,sticky="",padx=5, pady=5)
-
-#ejecuta ventana
-window.mainloop()
-
+    main()

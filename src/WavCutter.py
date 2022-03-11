@@ -7,6 +7,7 @@ class WavCutter:
         self.cuts = []
     
     def defineCuts (self, silentSeconds, dbTreshold):
+        segmentos=0 # Se añadió el contador de segmentos
         timestamp1 = 0
         timestamp2 = 0
         silenceNum = 0
@@ -23,13 +24,16 @@ class WavCutter:
                 if silenceNum > silentSeconds:
                     cut = (timestamp2 - timestamp1 )/2 + timestamp1
                     self.cuts.append(cut)
-                    print("Cut: " + str(timestamp1) + "-->" + str(int(cut)))
+                    segmentos=segmentos+1 # Contando los segmentos
+                    print("Segmento #" + str(segmentos) +" Cut: " + str(timestamp1) + "-->" + str(int(cut))) #  se modifica la impresión
+                    
                 silenceNum = 0
 
             milli += 1
         #apend el cut del final
         self.cuts.append(milli)
         #return self.cuts
+        return segmentos+1 #Se devuelve el número de segmentos encontrado
 
     def cut(self, name):
         cuttedAudio = []
