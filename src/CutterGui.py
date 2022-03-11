@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
     def gen_text(self):
         
         archivo=self.archivo_texto.text() 
-        with open(archivo, 'r') as filetext:
+        with open(archivo, 'r', encoding="utf-8") as filetext:
             datos = filetext.read()
         filetext.close()
         datos=datos.split("\n")
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         print (cantidad_textos)
         j=0
         while j < cantidad_textos:
-            with open(("audios/" + name + "_{:03d}".format(j))+".txt", 'w') as fp:
+            with open(("audios/" + name + "_{:03d}".format(j))+".txt", 'w', encoding="utf-8") as fp:
                 fp.write(datos[j])
                 fp.close()
             j=j+1
